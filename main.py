@@ -39,17 +39,18 @@ def updateDataset():
     # exits chrome webpage
     driver.quit()
 
-    # finds latitude and longitude from addresses
-    # todo very slow right now 1 sec per request, maybe use Google maps api?
-    """print("Finding latitudes and longitudes")
-    locator = Nominatim(user_agent="myGeocoder")
-    geocode = RateLimiter(locator.geocode, min_delay_seconds=1)
-    dataExtract.totalRentalDf['Location'] = dataExtract.totalRentalDf['Addresses'].apply(geocode)
-    dataExtract.totalRentalDf['Point'] = dataExtract.totalRentalDf['Location'].apply(lambda loc: tuple(loc.point) if loc else None)
-    dataExtract.totalRentalDf[['Latitude', 'Longitude', 'Altitude']] = pd.DataFrame( dataExtract.totalRentalDf['Point'].tolist(), index= dataExtract.totalRentalDf.index)"""
-
     # outputs all rental results
     DataExtract.totalRentalDf.to_csv("Total Rental Results.csv", index=False)
+
+# adds extra features to dataset (longitude and latitude)
+def addFeatures():
+
+    # adds longitudes and latitudes columns to dataset given address column
+    try:
+        DataExtract.addLongAndLat()
+    except Exception as e:
+        print(f"Error encountered while generating longitudes and latitudes")
+        traceback.print_exc()
 
 # runs data extraction for all FIPS codes in US
 def main():
@@ -61,8 +62,8 @@ def main():
     # gets a new dataset or updates existing dataset file
     #updateDataset()
 
-
-
+    # adds extra features to dataset
+    addFeatures()
 
     # outputs program time taken in total time and time CPU time
     elapsedTime = time.time() - startTime
