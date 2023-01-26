@@ -63,10 +63,13 @@ def main():
     #updateDataset()
 
     # cleans the dataset after update
-    DataExtract.cleanData()
+    #DataExtract.cleanData()
 
     # adds extra features to dataset
-    addFeatures()
+    #addFeatures()
+
+    # drops any instances with missing attribute values
+    DataExtract.dropMissingAttributes()
 
     # outputs program time taken in total time and time CPU time
     elapsedTime = time.time() - startTime

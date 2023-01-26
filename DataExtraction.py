@@ -244,3 +244,16 @@ class DataExtract:
 
         overallResultsDataframe.to_csv("Test Version.csv", index= False)
         """
+
+    # drops all instances with missing values in any attribute
+    @staticmethod
+    def dropMissingAttributes():
+
+        # gets original dataset dataframe
+        cleanWithAllAttsDf = pd.read_csv("Clean Dataset with lat and long.csv")
+
+        # removes instances with one or more blank values
+        cleanWithAllAttsDf.dropna(inplace=True)
+
+        # outputs new clean dataframe
+        cleanWithAllAttsDf.to_csv("FINAL Rental Results.csv", index=False)
