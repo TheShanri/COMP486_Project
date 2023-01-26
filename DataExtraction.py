@@ -4,7 +4,7 @@ It also has the functions to clean each attribute and add all other needed featu
 
 By Cole Koryto
 """
-
+import asyncio
 import os
 import pprint
 import pandas as pd
@@ -138,15 +138,78 @@ class DataExtract:
         # appends county data to overall dataframe
         DataExtract.totalRentalDf = pd.concat([DataExtract.totalRentalDf, df], axis=0)
 
+    """# creates geocoding tasks
+    @staticmethod
+    def makeGeoTasks(existingDf):
+        tasks = []
+        for address in existingDf.loc[:100, 'Addresses']:
+            tasks.append(cg.onelineaddress(address))
+        return tasks
+
+    # gathers all results for geocoding requests
+    @staticmethod
+    async def getGeoCodingResults(existingDf):
+        tasks = DataExtract.makeGeoTasks(existingDf)
+        allGeoResults = await asyncio.gather(*tasks)
+
+        # makes dataframe from results
+        geoCodeResultsDf = pd.DataFrame(allGeoResults, columns=["Longitude", "Latitude"])
+        pprint.pprint(geoCodeResultsDf)"""
+
+    # cleans dataset by removing unneeded instances
+    @staticmethod
+    def cleanData():
+
+        # gets original dataset dataframe
+        originalDf = pd.read_csv("Total Rental Results.csv")
+
+        # removes instances in columns that have 'No Data'
+        originalDf = originalDf[originalDf['Addresses'] != 'No Data']
+        originalDf = originalDf[originalDf['Prices'] != 'No Data']
+        originalDf = originalDf[originalDf['Beds'] != 'No Data']
+        originalDf = originalDf[originalDf['Baths'] != 'No Data']
+        originalDf = originalDf[originalDf['Square Footage'] != 'No Data']
+
+        # removes instances with one or more blank values
+        originalDf.dropna(inplace=True)
+
+        # outputs new clean dataframe
+        originalDf.to_csv("Clean Total Rental Results.csv", index=False)
+
     # takes overall rental dataframe and adds longitude and latitude
     @staticmethod
     def addLongAndLat():
 
         # todo remove and use class df
-        totalDf = pd.read_csv("Total Rental Results.csv")
+        totalDf = pd.read_csv("Clean Total Rental Results.csv")
+        geoCodeResultList = []
+        for numAddress, address in enumerate(totalDf.loc[:, 'Addresses']):
+            print(f"Getting address {numAddress+1} of {len(totalDf.loc[:, 'Addresses'])}")
+            try:
+                result = cg.onelineaddress(address)
+                if len(result) > 0:
+                    geoCodeResultList.append([result[0]['coordinates']['x'], result[0]['coordinates']['y']])
+                else:
+                    geoCodeResultList.append([None, None])
+            except Exception as e:
+                print(f"Error caused by address {address}\n{e}")
+                geoCodeResultList.append([None, None])
+
+        #asyncio.run(DataExtract.getGeoCodingResults(totalDf))
+
+        # makes dataframe from results
+        geoCodeResultsDf = pd.DataFrame(geoCodeResultList, columns=["Longitude", "Latitude"])
+
+        # concatenates geocoder results to overall dataframe
+        totalDf = pd.concat([totalDf, geoCodeResultsDf], axis=1)
+
+        # outputs new file
+        totalDf.to_csv("Clean Dataset with lat and long.csv", index=False)
+
+        """
         splitFileNames = []
         filename = 1
-
+        
         # runs through each 10,000 address block
         for index in range(0, len(totalDf), 10000):
             print(index)
@@ -176,7 +239,8 @@ class DataExtract:
                 overallResultsDataframe = pd.concat([overallResultsDataframe, resultDf], axis=0)
 
         # removes temp split files
-        """for fileName in splitFileNames:
-            os.remove(fileName)"""
+        for fileName in splitFileNames:
+            os.remove(fileName)
 
         overallResultsDataframe.to_csv("Test Version.csv", index= False)
+        """

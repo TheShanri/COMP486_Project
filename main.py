@@ -62,6 +62,9 @@ def main():
     # gets a new dataset or updates existing dataset file
     #updateDataset()
 
+    # cleans the dataset after update
+    DataExtract.cleanData()
+
     # adds extra features to dataset
     addFeatures()
 
