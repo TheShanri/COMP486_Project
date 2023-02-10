@@ -8,6 +8,7 @@ Inspired from: https://oxylabs.io/blog/python-web-scraping
 import pprint
 import traceback
 from DataExtraction import *
+from InstanceBasedModel import *
 import pandas as pd
 from selenium import webdriver
 import time
@@ -73,6 +74,9 @@ def main():
 
     # extracts numbers from needed columns
     DataExtract.extractNumbersOnly()
+
+    # creates new model instance
+    kNeighborsModel = InstanceBasedModel()
 
     # outputs program time taken in total time and time CPU time
     elapsedTime = time.time() - startTime

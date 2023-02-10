@@ -271,12 +271,12 @@ class DataExtract:
         cleanWithAllAttsDf = pd.read_csv("Clean Dataset with latlog and no na.csv")
 
         # extracts numbers from columns
-        cleanWithAllAttsDf['Prices_num'] = cleanWithAllAttsDf['Prices'].str.replace(r'[^\(\)0-9]*', '', regex=True)
         cleanWithAllAttsDf['Beds_num'] = cleanWithAllAttsDf['Beds'].str.extract(r'([-+]?\d*\.\d+|[-+]?\d+)').fillna(1)
         #cleanWithAllAttsDf['Beds_num'] = cleanWithAllAttsDf['Beds_num'].str.replace('', '1', regex=False)
         cleanWithAllAttsDf['Baths_num'] = cleanWithAllAttsDf['Baths'].str.extract(r'([-+]?\d*\.\d+|[-+]?\d+)')
         cleanWithAllAttsDf['Square Footage_num'] = cleanWithAllAttsDf['Square Footage'].str.replace(r'[^\(\)0-9]*', '', regex=True)
         cleanWithAllAttsDf['Square Footage_num'] = cleanWithAllAttsDf['Square Footage_num'].str.replace(r'\(.*\)', '', regex=True)
+        cleanWithAllAttsDf['Prices_num'] = cleanWithAllAttsDf['Prices'].str.replace(r'[^\(\)0-9]*', '', regex=True)
 
         # outputs new clean dataframe
         cleanWithAllAttsDf.to_csv("FINAL Rental Results.csv", index=False)
