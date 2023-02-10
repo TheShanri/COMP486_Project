@@ -71,6 +71,9 @@ def main():
     # drops any instances with missing attribute values
     DataExtract.dropMissingAttributes()
 
+    # extracts numbers from needed columns
+    DataExtract.extractNumbersOnly()
+
     # outputs program time taken in total time and time CPU time
     elapsedTime = time.time() - startTime
     executionTime = time.process_time() - cpuStartTime

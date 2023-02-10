@@ -255,5 +255,28 @@ class DataExtract:
         # removes instances with one or more blank values
         cleanWithAllAttsDf.dropna(inplace=True)
 
+        # remove instances that have the same address
+        # todo what is this removing (look at instances)
+        cleanWithAllAttsDf.drop_duplicates(subset=['Addresses'], keep='first', inplace=True)
+
+        # outputs new clean dataframe
+        cleanWithAllAttsDf.to_csv("Clean Dataset with latlog and no na.csv", index=False)
+
+
+    # extracts numbers only from applicable columns
+    @staticmethod
+    def extractNumbersOnly():
+
+        # reads in clean data with no missing attributes
+        cleanWithAllAttsDf = pd.read_csv("Clean Dataset with latlog and no na.csv")
+
+        # extracts numbers from columns
+        cleanWithAllAttsDf['Prices_num'] = cleanWithAllAttsDf['Prices'].str.replace(r'[^\(\)0-9]*', '', regex=True)
+        cleanWithAllAttsDf['Beds_num'] = cleanWithAllAttsDf['Beds'].str.extract(r'([-+]?\d*\.\d+|[-+]?\d+)').fillna(1)
+        #cleanWithAllAttsDf['Beds_num'] = cleanWithAllAttsDf['Beds_num'].str.replace('', '1', regex=False)
+        cleanWithAllAttsDf['Baths_num'] = cleanWithAllAttsDf['Baths'].str.extract(r'([-+]?\d*\.\d+|[-+]?\d+)')
+        cleanWithAllAttsDf['Square Footage_num'] = cleanWithAllAttsDf['Square Footage'].str.replace(r'[^\(\)0-9]*', '', regex=True)
+        cleanWithAllAttsDf['Square Footage_num'] = cleanWithAllAttsDf['Square Footage_num'].str.replace(r'\(.*\)', '', regex=True)
+
         # outputs new clean dataframe
         cleanWithAllAttsDf.to_csv("FINAL Rental Results.csv", index=False)
