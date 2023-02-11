@@ -8,7 +8,7 @@ Inspired from: https://oxylabs.io/blog/python-web-scraping
 import pprint
 import traceback
 from DataExtraction import *
-from InstanceBasedModel import *
+from LearningModels import *
 import pandas as pd
 from selenium import webdriver
 import time
@@ -70,13 +70,25 @@ def main():
     #addFeatures()
 
     # drops any instances with missing attribute values
-    DataExtract.dropMissingAttributes()
+    #DataExtract.dropMissingAttributes()
 
     # extracts numbers from needed columns
-    DataExtract.extractNumbersOnly()
+    #DataExtract.extractNumbersOnly()
 
     # creates new model instance
-    kNeighborsModel = InstanceBasedModel()
+    modelObject = LearningModels()
+
+    # visualizes data
+    modelObject.visualizeData()
+
+    # creates K neighbors regression model
+    #modelObject.createKNeighborsModel()
+
+    # creates linear regression model
+    #modelObject.createLinearModel()
+
+    # crates SVM polynomial regression model
+    modelObject.createSVMModel()
 
     # outputs program time taken in total time and time CPU time
     elapsedTime = time.time() - startTime

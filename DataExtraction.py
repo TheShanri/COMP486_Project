@@ -160,6 +160,8 @@ class DataExtract:
     @staticmethod
     def cleanData():
 
+        print("\nCleaning data")
+
         # gets original dataset dataframe
         originalDf = pd.read_csv("Total Rental Results.csv")
 
@@ -179,6 +181,8 @@ class DataExtract:
     # takes overall rental dataframe and adds longitude and latitude
     @staticmethod
     def addLongAndLat():
+
+        print("\nAdding longitude and latitude")
 
         # todo remove and use class df
         totalDf = pd.read_csv("Clean Total Rental Results.csv")
@@ -249,6 +253,8 @@ class DataExtract:
     @staticmethod
     def dropMissingAttributes():
 
+        print("\nDropping instances missing attributes")
+
         # gets original dataset dataframe
         cleanWithAllAttsDf = pd.read_csv("Clean Dataset with lat and long.csv")
 
@@ -267,16 +273,24 @@ class DataExtract:
     @staticmethod
     def extractNumbersOnly():
 
+        print("\nExtracting numbers")
+
         # reads in clean data with no missing attributes
         cleanWithAllAttsDf = pd.read_csv("Clean Dataset with latlog and no na.csv")
 
         # extracts numbers from columns
-        cleanWithAllAttsDf['Beds_num'] = cleanWithAllAttsDf['Beds'].str.extract(r'([-+]?\d*\.\d+|[-+]?\d+)').fillna(1)
+        cleanWithAllAttsDf['Beds_num'] = cleanWithAllAttsDf['Beds'].str.extract(r'([-+]?\d*\.\d+|[-+]?\d+)').fillna(1).astype(float)
         #cleanWithAllAttsDf['Beds_num'] = cleanWithAllAttsDf['Beds_num'].str.replace('', '1', regex=False)
-        cleanWithAllAttsDf['Baths_num'] = cleanWithAllAttsDf['Baths'].str.extract(r'([-+]?\d*\.\d+|[-+]?\d+)')
+        cleanWithAllAttsDf['Baths_num'] = cleanWithAllAttsDf['Baths'].str.extract(r'([-+]?\d*\.\d+|[-+]?\d+)').astype(float)
         cleanWithAllAttsDf['Square Footage_num'] = cleanWithAllAttsDf['Square Footage'].str.replace(r'[^\(\)0-9]*', '', regex=True)
-        cleanWithAllAttsDf['Square Footage_num'] = cleanWithAllAttsDf['Square Footage_num'].str.replace(r'\(.*\)', '', regex=True)
-        cleanWithAllAttsDf['Prices_num'] = cleanWithAllAttsDf['Prices'].str.replace(r'[^\(\)0-9]*', '', regex=True)
+        cleanWithAllAttsDf['Square Footage_num'] = cleanWithAllAttsDf['Square Footage_num'].str.replace(r'\(.*\)', '', regex=True).astype(float)
+        cleanWithAllAttsDf['Prices_num'] = cleanWithAllAttsDf['Prices'].str.replace(r'[^\(\)0-9]*', '', regex=True).astype(float)
+
+        # todo is this needed?
+        # drops highest 1% of price
+        cleanWithAllAttsDf = cleanWithAllAttsDf.loc[(cleanWithAllAttsDf['Prices_num'] < 10000), :]
+        # drops highest 1% of sq ft
+        cleanWithAllAttsDf = cleanWithAllAttsDf.loc[(cleanWithAllAttsDf['Square Footage_num'] < 10000), :]
 
         # outputs new clean dataframe
         cleanWithAllAttsDf.to_csv("FINAL Rental Results.csv", index=False)
