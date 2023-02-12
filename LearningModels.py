@@ -17,6 +17,8 @@ from sklearn.linear_model import LinearRegression
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVR
+from sklearn.model_selection import GridSearchCV
+
 
 class LearningModels:
 
@@ -153,17 +155,26 @@ class LearningModels:
         self.y_train = self.y_train[0:1000]
         self.X_test = self.X_test[0:1000]
         self.y_test = self.y_test[0:1000]
+        """pd.DataFrame(self.X_train).to_csv("X_train.csv")
+        pd.DataFrame(self.y_train).to_csv("y_train.csv")
+        pd.DataFrame(self.X_test).to_csv("X_test.csv")
+        pd.DataFrame(self.y_test).to_csv("y_test.csv")"""
+
 
 
         # creates a SVM polynomial model
         print("\nCreating SVM polynomial regression model")
-        svm_poly_reg = SVR(kernel="poly", degree=2, C=0.01, epsilon=0.1)
-        svm_poly_reg.fit(self.X_train, self.y_train)
+        parameters = [{'kernel': ['rbf'], 'gamma': [1e-4, 1e-3, 0.01, 0.1, 0.2, 0.5, 0.6, 0.9], 'C': [1, 10, 100, 1000, 10000], 'degree': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], }]
+        K = 5
+        svm_poly_reg = GridSearchCV(SVR(kernel="poly", epsilon=0.1), parameters, cv=K, verbose=3, n_jobs=-1)
+        #svm_poly_reg = SVR(kernel="poly", degree=5, C=100, epsilon=0.1)
+        svm_poly_reg.fit(self.X_train, self.y_train.values.ravel())
         y_pred = svm_poly_reg.predict(self.X_test)
         mae = metrics.mean_absolute_error(self.y_test, y_pred)
         mse = metrics.mean_squared_error(self.y_test, y_pred)
         rmse = metrics.mean_squared_error(self.y_test, y_pred, squared=False)
         r2 = metrics.r2_score(self.y_test, y_pred)
+        print(f"Best model parameters: {svm_poly_reg.best_params_}")
         print("The model performance for testing set")
         print("--------------------------------------")
         print('MAE is {}'.format(mae))
