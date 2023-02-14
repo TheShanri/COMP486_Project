@@ -113,7 +113,7 @@ class LearningModels:
         # plots a graph comparing actual value versus predicted value
         fig, ax = plt.subplots()
         y_pred = bestModel.predict(self.X_test)
-        ax.scatter(y_pred, self.y_test, edgecolors=(0, 0, 1))
+        ax.scatter(y_pred, self.y_test, edgecolors=(0, 0, 1), alpha=0.1)
         ax.plot([self.y_test.min(), self.y_test.max()], [self.y_test.min(), self.y_test.max()], 'r--', lw=3)
         ax.set_xlabel('Predicted')
         ax.set_ylabel('Actual')
@@ -141,7 +141,7 @@ class LearningModels:
         # plots a graph comparing actual value versus predicted value
         fig, ax = plt.subplots()
         y_pred = linearReg.predict(self.X_test)
-        ax.scatter(y_pred, self.y_test, edgecolors=(0, 0, 1))
+        ax.scatter(y_pred, self.y_test, edgecolors=(0, 0, 1), alpha=0.1)
         ax.plot([self.y_test.min(), self.y_test.max()], [self.y_test.min(), self.y_test.max()], 'r--', lw=3)
         ax.set_xlabel('Predicted')
         ax.set_ylabel('Actual')
@@ -151,10 +151,10 @@ class LearningModels:
     # creates, tests, and visualizes a SVM polynomial regression
     def createSVMModel(self):
 
-        self.X_train = self.X_train[0:1000]
-        self.y_train = self.y_train[0:1000]
-        self.X_test = self.X_test[0:1000]
-        self.y_test = self.y_test[0:1000]
+        self.X_train = self.X_train[0:25000]
+        self.y_train = self.y_train[0:25000]
+        self.X_test = self.X_test
+        self.y_test = self.y_test
         """pd.DataFrame(self.X_train).to_csv("X_train.csv")
         pd.DataFrame(self.y_train).to_csv("y_train.csv")
         pd.DataFrame(self.X_test).to_csv("X_test.csv")
@@ -164,9 +164,9 @@ class LearningModels:
 
         # creates a SVM polynomial model
         print("\nCreating SVM polynomial regression model")
-        parameters = [{'kernel': ['rbf'], 'gamma': [1e-4, 1e-3, 0.01, 0.1, 0.2, 0.5, 0.6, 0.9], 'C': [1, 10, 100, 1000, 10000], 'degree': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], }]
-        K = 5
-        svm_poly_reg = GridSearchCV(SVR(kernel="poly", epsilon=0.1), parameters, cv=K, verbose=3, n_jobs=-1)
+        parameters = [{'kernel': ['rbf'], 'gamma': [1e-4, 1e-3, 0.01, 0.1, 0.2, 0.5, 0.6], 'C': [1, 10, 100, 1000, 6000, 10000], 'degree': [1, 2, 3, 4], 'epsilon': [0.1]}]
+        K = 3
+        svm_poly_reg = GridSearchCV(SVR(kernel="poly"), parameters, cv=K, verbose=3, n_jobs=-1)
         #svm_poly_reg = SVR(kernel="poly", degree=5, C=100, epsilon=0.1)
         svm_poly_reg.fit(self.X_train, self.y_train.values.ravel())
         y_pred = svm_poly_reg.predict(self.X_test)
@@ -185,8 +185,8 @@ class LearningModels:
         # plots a graph comparing actual value versus predicted value
         fig, ax = plt.subplots()
         y_pred = svm_poly_reg.predict(self.X_test)
-        ax.scatter(y_pred, self.y_test, edgecolors=(0, 0, 1))
-        ax.plot([self.y_test.min(), self.y_test.max()], [self.y_test.min(), self.y_test.max()], 'r--', lw=3)
+        ax.scatter(y_pred, self.y_test, edgecolors=(0, 0, 1), alpha=0.1)
+        ax.plot([self.y_test.min(), self.y_test.max()], [self.y_test.min(), self.y_test.max()], 'r--', lw=3,)
         ax.set_xlabel('Predicted')
         ax.set_ylabel('Actual')
         plt.show()
