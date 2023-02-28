@@ -13,9 +13,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.neighbors import KNeighborsRegressor
 import matplotlib.pyplot as plt
 from pandas.plotting import scatter_matrix
-from sklearn.linear_model import LinearRegression
-from sklearn.pipeline import make_pipeline
-from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import ElasticNet
 from sklearn.svm import SVR
 from sklearn.model_selection import GridSearchCV
 
@@ -43,22 +41,22 @@ class LearningModels:
     def visualizeData(self):
 
         # plots histograms of attributes
-        """plt.rc('font', size=14)
+        plt.rc('font', size=14)
         plt.rc('axes', labelsize=14, titlesize=14)
         plt.rc('legend', fontsize=14)
         plt.rc('xtick', labelsize=10)
         plt.rc('ytick', labelsize=10)
         self.cleanDataDf.hist(bins=50, figsize=(12, 8))
-        plt.show()"""
+        plt.show()
 
         # plots correlation graphs
-        """attributes = ["Prices_num", "Beds_num", "Baths_num", "Square Footage_num", "Longitude", "Latitude"]
+        attributes = ["Prices_num", "Beds_num", "Baths_num", "Square Footage_num", "Longitude", "Latitude"]
         scatter_matrix(self.cleanDataDf[attributes], figsize=(12, 8))
-        plt.show()"""
+        plt.show()
 
         # displays correlation matrix with price
-        """corr_matrix = self.cleanDataDf.iloc[:, 5:].corr()
-        pprint.pprint(corr_matrix["Prices_num"].sort_values(ascending=False))"""
+        corr_matrix = self.cleanDataDf.iloc[:, 5:].corr()
+        pprint.pprint(corr_matrix["Prices_num"].sort_values(ascending=False))
 
     # scales data with standard scaler
     def scaleData(self):
@@ -67,80 +65,72 @@ class LearningModels:
         print("\nScaling data")
         self.X_train = self.std_scaler.fit_transform(self.X_train)
         self.X_test = self.std_scaler.fit_transform(self.X_test)
-        #self.y_train = self.std_scaler.fit_transform(self.y_train)
-        #self.y_test = self.std_scaler.fit_transform(self.y_test)
-        """pprint.pprint(self.X_train)
-        pprint.pprint(self.X_test)
-        pprint.pprint(self.y_train)
-        pprint.pprint(self.y_test)"""
+
+    # outputs metrics for given predictions and actual data set
+    def outputMetrics(self, y_actual, y_pred):
+        mae = metrics.mean_absolute_error(y_actual, y_pred)
+        mse = metrics.mean_squared_error(y_actual, y_pred)
+        rmse = metrics.mean_squared_error(y_actual, y_pred, squared=False)
+        r2 = metrics.r2_score(y_actual, y_pred)
+        print("--------------------------------------")
+        print('MAE is {}'.format(mae))
+        print('MSE is {}'.format(mse))
+        print('RMSE is {}'.format(rmse))
+        print('R2 score is {}'.format(r2))
+        print("--------------------------------------")
 
     # creates, tests, and visualizes a k-neighbors regression
     def createKNeighborsModel(self):
 
         # loops through a range of k to find the best model
-        print("\nCreating k-neighbors regression model")
-        range_k = range(1, 11)
-        scores = {}
-        bestModel = None
-        bestR2 = None
-        for k in range_k:
-            regression = KNeighborsRegressor(n_neighbors=k)
-            regression.fit(self.X_train, self.y_train)
-            y_pred = regression.predict(self.X_test)
-            mae = metrics.mean_absolute_error(self.y_test, y_pred)
-            mse = metrics.mean_squared_error(self.y_test, y_pred)
-            rmse = metrics.mean_squared_error(self.y_test, y_pred, squared=False)
-            r2 = metrics.r2_score(self.y_test, y_pred)
-            scores[k] = {'MAE': mae, 'MSE': mse, 'RMSE': rmse, 'R2': r2}
-            if bestR2 is None or r2 > bestR2:
-                bestModel = regression
-                bestR2 = r2
-            """print("The model performance for testing set")
-            print("--------------------------------------")
-            print('MAE is {}'.format(mae))
-            print('MSE is {}'.format(mse))
-            print('RMSE is {}'.format(rmse))
-            print('R2 score is {}'.format(r2))"""
+        print("\n\nCreating k-neighbors regression model")
+        parameters = [{'n_neighbors': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]}]
+        K = 3
+        k_neighbors_reg = GridSearchCV(KNeighborsRegressor(), parameters, cv=K, verbose=3, n_jobs=-1)
+        k_neighbors_reg.fit(self.X_train, self.y_train)
+        print(f"Best model parameters: {k_neighbors_reg.best_params_}")
+        print("\nTraining Set Metrics")
+        y_train_pred = k_neighbors_reg.predict(self.X_train)
+        self.outputMetrics(self.y_train, y_train_pred)
+        print("\nTest Set Metrics")
+        y_test_pred = k_neighbors_reg.predict(self.X_test)
+        self.outputMetrics(self.y_test, y_test_pred)
 
         # prints out the best model and a prediction on the first instance
-        print(f"\nBest k-neighbors model parameters: {bestModel.get_params()}")
-        print(f"Best k-neighbors model scores: {scores[bestModel.get_params()['n_neighbors']]}")
-        y_pred_first = bestModel.predict([self.X_test[0]])
+        y_pred_first = k_neighbors_reg.predict([self.X_test[0]])
         print(f"First Instance: {self.X_test[0]}")
         print(f"Predicted price: {y_pred_first}")
         print(f"Actual price: {self.y_test.iloc[0, :]}")
 
         # plots a graph comparing actual value versus predicted value
         fig, ax = plt.subplots()
-        y_pred = bestModel.predict(self.X_test)
+        y_pred = k_neighbors_reg.predict(self.X_test)
         ax.scatter(y_pred, self.y_test, edgecolors=(0, 0, 1), alpha=0.1)
         ax.plot([self.y_test.min(), self.y_test.max()], [self.y_test.min(), self.y_test.max()], 'r--', lw=3)
         ax.set_xlabel('Predicted')
         ax.set_ylabel('Actual')
         plt.show()
 
-    # creates, tests, and visualizes a linear regression
+    # creates, tests, and visualizes a linear regression (elastic net regression)
     def createLinearModel(self):
 
         # creates a linear regression
-        print("\nCreating linear regression model")
-        linearReg = LinearRegression()
-        linearReg.fit(self.X_train, self.y_train)
-        y_pred = linearReg.predict(self.X_test)
-        mae = metrics.mean_absolute_error(self.y_test, y_pred)
-        mse = metrics.mean_squared_error(self.y_test, y_pred)
-        rmse = metrics.mean_squared_error(self.y_test, y_pred, squared=False)
-        r2 = metrics.r2_score(self.y_test, y_pred)
-        print("The model performance for testing set")
-        print("--------------------------------------")
-        print('MAE is {}'.format(mae))
-        print('MSE is {}'.format(mse))
-        print('RMSE is {}'.format(rmse))
-        print('R2 score is {}'.format(r2))
+        print("\nCreating linear regression model (elastic net)")
+        parameters = [{'l1_ratio': [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1]}]
+        K = 3
+        linearRegElastic = GridSearchCV(ElasticNet(random_state=0, max_iter=200000), parameters, cv=K, verbose=3, n_jobs=-1)
+        linearRegElastic.fit(self.X_train, self.y_train)
+        print(f"Best model parameters: {linearRegElastic.best_params_}")
+        print("\nTraining Set Metrics")
+        y_train_pred = linearRegElastic.predict(self.X_train)
+        self.outputMetrics(self.y_train, y_train_pred)
+        print("\nTest Set Metrics")
+        y_test_pred = linearRegElastic.predict(self.X_test)
+        self.outputMetrics(self.y_test, y_test_pred)
 
         # plots a graph comparing actual value versus predicted value
         fig, ax = plt.subplots()
-        y_pred = linearReg.predict(self.X_test)
+        y_pred = linearRegElastic.predict(self.X_test)
         ax.scatter(y_pred, self.y_test, edgecolors=(0, 0, 1), alpha=0.1)
         ax.plot([self.y_test.min(), self.y_test.max()], [self.y_test.min(), self.y_test.max()], 'r--', lw=3)
         ax.set_xlabel('Predicted')
@@ -151,36 +141,19 @@ class LearningModels:
     # creates, tests, and visualizes a SVM polynomial regression
     def createSVMModel(self):
 
-        self.X_train = self.X_train[0:25000]
-        self.y_train = self.y_train[0:25000]
-        self.X_test = self.X_test
-        self.y_test = self.y_test
-        """pd.DataFrame(self.X_train).to_csv("X_train.csv")
-        pd.DataFrame(self.y_train).to_csv("y_train.csv")
-        pd.DataFrame(self.X_test).to_csv("X_test.csv")
-        pd.DataFrame(self.y_test).to_csv("y_test.csv")"""
-
-
-
         # creates a SVM polynomial model
         print("\nCreating SVM polynomial regression model")
-        parameters = [{'kernel': ['rbf'], 'gamma': [1e-4, 1e-3, 0.01, 0.1, 0.2, 0.5, 0.6], 'C': [1, 10, 100, 1000, 6000, 10000], 'degree': [1, 2, 3, 4], 'epsilon': [0.1]}]
+        parameters = [{'kernel': ['rbf'], 'gamma': [0.8], 'C': [5000], 'degree': [1], 'epsilon': [0.1]}]
         K = 3
         svm_poly_reg = GridSearchCV(SVR(kernel="poly"), parameters, cv=K, verbose=3, n_jobs=-1)
-        #svm_poly_reg = SVR(kernel="poly", degree=5, C=100, epsilon=0.1)
         svm_poly_reg.fit(self.X_train, self.y_train.values.ravel())
-        y_pred = svm_poly_reg.predict(self.X_test)
-        mae = metrics.mean_absolute_error(self.y_test, y_pred)
-        mse = metrics.mean_squared_error(self.y_test, y_pred)
-        rmse = metrics.mean_squared_error(self.y_test, y_pred, squared=False)
-        r2 = metrics.r2_score(self.y_test, y_pred)
         print(f"Best model parameters: {svm_poly_reg.best_params_}")
-        print("The model performance for testing set")
-        print("--------------------------------------")
-        print('MAE is {}'.format(mae))
-        print('MSE is {}'.format(mse))
-        print('RMSE is {}'.format(rmse))
-        print('R2 score is {}'.format(r2))
+        print("\nTraining Set Metrics")
+        y_train_pred = svm_poly_reg.predict(self.X_train)
+        self.outputMetrics(self.y_train, y_train_pred)
+        print("\nTest Set Metrics")
+        y_test_pred = svm_poly_reg.predict(self.X_test)
+        self.outputMetrics(self.y_test, y_test_pred)
 
         # plots a graph comparing actual value versus predicted value
         fig, ax = plt.subplots()

@@ -79,13 +79,13 @@ def main():
     modelObject = LearningModels()
 
     # visualizes data
-    modelObject.visualizeData()
+    #modelObject.visualizeData()
 
     # creates K neighbors regression model
-    #modelObject.createKNeighborsModel()
+    modelObject.createKNeighborsModel()
 
     # creates linear regression model
-    #modelObject.createLinearModel()
+    modelObject.createLinearModel()
 
     # crates SVM polynomial regression model
     modelObject.createSVMModel()
