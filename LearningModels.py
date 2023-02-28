@@ -16,6 +16,7 @@ from pandas.plotting import scatter_matrix
 from sklearn.linear_model import ElasticNet
 from sklearn.svm import SVR
 from sklearn.model_selection import GridSearchCV
+import tensorflow as tf
 
 
 class LearningModels:
@@ -160,6 +161,46 @@ class LearningModels:
         y_pred = svm_poly_reg.predict(self.X_test)
         ax.scatter(y_pred, self.y_test, edgecolors=(0, 0, 1), alpha=0.1)
         ax.plot([self.y_test.min(), self.y_test.max()], [self.y_test.min(), self.y_test.max()], 'r--', lw=3,)
+        ax.set_xlabel('Predicted')
+        ax.set_ylabel('Actual')
+        plt.show()
+
+    # creates, tests, and visualizes a sequential ANN
+    def createNeuralNetwork(self):
+
+        # builds neural network
+        tf.random.set_seed(42)
+        model = tf.keras.Sequential()
+        model.add(tf.keras.layers.InputLayer(input_shape=[5]))
+        model.add(tf.keras.layers.Dense(300,kernel_initializer='normal', activation="relu"))
+        model.add(tf.keras.layers.Dense(300,kernel_initializer='normal', activation="relu"))
+        model.add(tf.keras.layers.Dense(300,kernel_initializer='normal', activation="relu"))
+        model.add(tf.keras.layers.Dense(300,kernel_initializer='normal', activation="relu"))
+        model.add(tf.keras.layers.Dense(300,kernel_initializer='normal', activation="relu"))
+        model.add(tf.keras.layers.Dense(1, kernel_initializer='normal'))
+
+        # compiles neural network
+        model.compile(loss="mean_squared_error",
+                      optimizer="adam",
+                      metrics=["mean_absolute_error"])
+
+        # trains neural network
+        history = model.fit(self.X_train, self.y_train, epochs=30)
+
+        # evaluates neural network
+        print(f"Loss and accuracy for test set: {model.evaluate(self.X_test, self.y_test)}")
+        print("\nTraining Set Metrics")
+        y_train_pred = model.predict(self.X_train)
+        self.outputMetrics(self.y_train, y_train_pred)
+        print("\nTest Set Metrics")
+        y_test_pred = model.predict(self.X_test)
+        self.outputMetrics(self.y_test, y_test_pred)
+
+        # plots a graph comparing actual value versus predicted value
+        fig, ax = plt.subplots()
+        y_pred = model.predict(self.X_test)
+        ax.scatter(y_pred, self.y_test, edgecolors=(0, 0, 1), alpha=0.1)
+        ax.plot([self.y_test.min(), self.y_test.max()], [self.y_test.min(), self.y_test.max()], 'r--', lw=3, )
         ax.set_xlabel('Predicted')
         ax.set_ylabel('Actual')
         plt.show()

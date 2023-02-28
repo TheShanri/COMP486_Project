@@ -82,13 +82,16 @@ def main():
     #modelObject.visualizeData()
 
     # creates K neighbors regression model
-    modelObject.createKNeighborsModel()
+    #modelObject.createKNeighborsModel()
 
     # creates linear regression model
-    modelObject.createLinearModel()
+    #modelObject.createLinearModel()
 
     # crates SVM polynomial regression model
-    modelObject.createSVMModel()
+    #modelObject.createSVMModel()
+
+    # crates sequential neural network model
+    modelObject.createNeuralNetwork()
 
     # outputs program time taken in total time and time CPU time
     elapsedTime = time.time() - startTime
