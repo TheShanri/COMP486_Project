@@ -243,15 +243,17 @@ class LearningModels:
         sqft =  float(input("Enter the square footage: "))
 
         # loads all models
+        print("Loading models")
         k_neighbors_reg = load('KNeighbors.joblib')
         linearRegElastic = load('Linear.joblib')
         svm_poly_reg = load('SVM.joblib')
         neuralModel = load_model('neural_model.h5')
 
         # predicts with each model and outputs prediction
-        X_new = [long, lat, beds, baths, sqft]
-        print(f"K Neighbors rent prediction: {k_neighbors_reg.predict([X_new])}")
-        print(f"Linear model rent prediction: {linearRegElastic.predict([X_new])}")
-        print(f"SVM rent prediction: {svm_poly_reg.predict([X_new])}")
-        print(f"Neural network rent prediction: {neuralModel.predict([X_new])}")
+        X_new = self.std_scaler.fit_transform([[long, lat, beds, baths, sqft]])
+        print(X_new)
+        print(f"K Neighbors rent prediction: {k_neighbors_reg.predict(X_new)}")
+        print(f"Linear model rent prediction: {linearRegElastic.predict(X_new)}")
+        print(f"SVM rent prediction: {svm_poly_reg.predict(X_new)}")
+        print(f"Neural network rent prediction: {neuralModel.predict(X_new)}")
 
