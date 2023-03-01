@@ -4,8 +4,8 @@ rental price prediction.
 
 By Cole Koryto
 """
-import pprint
 
+import pprint
 import pandas as pd
 from sklearn import metrics
 from sklearn.model_selection import train_test_split
@@ -36,6 +36,7 @@ class LearningModels:
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(X, y, test_size = 0.10, random_state=42, shuffle=True)
 
         # creates a standard scaler
+        # todo does not need to be instance var
         self.std_scaler = StandardScaler()
 
         # scales data with standard scaler
@@ -67,8 +68,12 @@ class LearningModels:
 
         # scales all data
         print("\nScaling data")
-        self.X_train = self.std_scaler.fit_transform(self.X_train)
-        self.X_test = self.std_scaler.fit_transform(self.X_test)
+        self.std_scaler.fit(self.X_train)
+        self.X_train = self.std_scaler.transform(self.X_train)
+        self.X_test = self.std_scaler.transform(self.X_test)
+
+        # saves scaler
+        dump(self.std_scaler, 'TrainingScaler.joblib')
 
     # outputs metrics for given predictions and actual data set
     def outputMetrics(self, y_actual, y_pred):
@@ -237,10 +242,10 @@ class LearningModels:
         beds = float(input("Enter the number of beds: "))
 
         # gets user baths
-        baths =  float(input("Enter the number of baths: "))
+        baths = float(input("Enter the number of baths: "))
 
         # gets user square footage
-        sqft =  float(input("Enter the square footage: "))
+        sqft = float(input("Enter the square footage: "))
 
         # loads all models
         print("Loading models")
@@ -249,8 +254,12 @@ class LearningModels:
         svm_poly_reg = load('SVM.joblib')
         neuralModel = load_model('neural_model.h5')
 
+        # loads scaler
+        std_scaler = load("TrainingScaler.joblib")
+
         # predicts with each model and outputs prediction
-        X_new = self.std_scaler.fit_transform([[long, lat, beds, baths, sqft]])
+        print([[long, lat, beds, baths, sqft]])
+        X_new = std_scaler.transform([[long, lat, beds, baths, sqft]])
         print(X_new)
         print(f"K Neighbors rent prediction: {k_neighbors_reg.predict(X_new)}")
         print(f"Linear model rent prediction: {linearRegElastic.predict(X_new)}")
