@@ -210,45 +210,6 @@ class DataExtract:
         # outputs new file
         totalDf.to_csv("Clean Dataset with lat and long.csv", index=False)
 
-        """
-        splitFileNames = []
-        filename = 1
-        
-        # runs through each 10,000 address block
-        for index in range(0, len(totalDf), 10000):
-            print(index)
-            splitDf = totalDf.iloc[index:index+10000, 0:1].copy()
-
-            # runs through each address in the block to split it into its components
-            addressList = splitDf["Addresses"].tolist()
-            rowList = []
-            for address in addressList:
-
-            splitDf.to_csv(str(filename) + '.csv', index=False)
-            splitFileNames.append(str(filename) + '.csv')
-            filename += 1
-
-        # runs through each address and converts it to a longitude and latitude
-        print("Getting longitudes and latitudes from addresses")
-        overallResultsDataframe = pd.DataFrame()
-        for batchNum, fileName in enumerate(splitFileNames):
-            print("Getting results for batch " + str(batchNum + 1) + " of " + str(len(splitFileNames)))
-            resultDf = pd.DataFrame.from_dict(cg.addressbatch(fileName))
-            pprint.pprint(resultDf)
-
-            # sets first result dataframe to be overall and appends all other results
-            if overallResultsDataframe.empty:
-                overallResultsDataframe = resultDf
-            else:
-                overallResultsDataframe = pd.concat([overallResultsDataframe, resultDf], axis=0)
-
-        # removes temp split files
-        for fileName in splitFileNames:
-            os.remove(fileName)
-
-        overallResultsDataframe.to_csv("Test Version.csv", index= False)
-        """
-
     # drops all instances with missing values in any attribute
     @staticmethod
     def dropMissingAttributes():

@@ -17,6 +17,9 @@ from sklearn.linear_model import ElasticNet
 from sklearn.svm import SVR
 from sklearn.model_selection import GridSearchCV
 import tensorflow as tf
+from joblib import dump, load
+import censusgeocode as cg
+from tensorflow.keras.models import load_model
 
 
 class LearningModels:
@@ -110,9 +113,12 @@ class LearningModels:
         ax.plot([self.y_test.min(), self.y_test.max()], [self.y_test.min(), self.y_test.max()], 'r--', lw=3)
         ax.set_xlabel('Predicted')
         ax.set_ylabel('Actual')
-        plt.show()
+        #plt.show()
 
-    # creates, tests, and visualizes a linear regression (elastic net regression)
+        # saves model
+        dump(k_neighbors_reg, 'KNeighbors.joblib')
+
+        # creates, tests, and visualizes a linear regression (elastic net regression)
     def createLinearModel(self):
 
         # creates a linear regression
@@ -136,7 +142,10 @@ class LearningModels:
         ax.plot([self.y_test.min(), self.y_test.max()], [self.y_test.min(), self.y_test.max()], 'r--', lw=3)
         ax.set_xlabel('Predicted')
         ax.set_ylabel('Actual')
-        plt.show()
+        #plt.show()
+
+        # saves model
+        dump(linearRegElastic, 'Linear.joblib')
 
 
     # creates, tests, and visualizes a SVM polynomial regression
@@ -163,44 +172,86 @@ class LearningModels:
         ax.plot([self.y_test.min(), self.y_test.max()], [self.y_test.min(), self.y_test.max()], 'r--', lw=3,)
         ax.set_xlabel('Predicted')
         ax.set_ylabel('Actual')
-        plt.show()
+        #plt.show()
+
+        # saves model
+        dump(svm_poly_reg, 'SVM.joblib')
 
     # creates, tests, and visualizes a sequential ANN
     def createNeuralNetwork(self):
 
         # builds neural network
         tf.random.set_seed(42)
-        model = tf.keras.Sequential()
-        model.add(tf.keras.layers.InputLayer(input_shape=[5]))
-        model.add(tf.keras.layers.Dense(300,kernel_initializer='normal', activation="relu"))
-        model.add(tf.keras.layers.Dense(300,kernel_initializer='normal', activation="relu"))
-        model.add(tf.keras.layers.Dense(300,kernel_initializer='normal', activation="relu"))
-        model.add(tf.keras.layers.Dense(300,kernel_initializer='normal', activation="relu"))
-        model.add(tf.keras.layers.Dense(300,kernel_initializer='normal', activation="relu"))
-        model.add(tf.keras.layers.Dense(1, kernel_initializer='normal'))
+        neuralModel = tf.keras.Sequential()
+        neuralModel.add(tf.keras.layers.InputLayer(input_shape=[5]))
+        neuralModel.add(tf.keras.layers.Dense(300, activation="relu"))
+        neuralModel.add(tf.keras.layers.Dense(300, activation="relu"))
+        neuralModel.add(tf.keras.layers.Dense(300, activation="relu"))
+        neuralModel.add(tf.keras.layers.Dense(300, activation="relu"))
+        neuralModel.add(tf.keras.layers.Dense(300, activation="relu"))
+        neuralModel.add(tf.keras.layers.Dense(1, kernel_initializer='normal'))
 
         # compiles neural network
-        model.compile(loss="mean_squared_error",
+        neuralModel.compile(loss="mean_squared_error",
                       optimizer="adam",
                       metrics=["mean_absolute_error"])
 
         # trains neural network
-        history = model.fit(self.X_train, self.y_train, epochs=30)
+        history = neuralModel.fit(self.X_train, self.y_train, epochs=30)
 
         # evaluates neural network
-        print(f"Loss and accuracy for test set: {model.evaluate(self.X_test, self.y_test)}")
+        print(f"Loss and accuracy for test set: {neuralModel.evaluate(self.X_test, self.y_test)}")
         print("\nTraining Set Metrics")
-        y_train_pred = model.predict(self.X_train)
+        y_train_pred = neuralModel.predict(self.X_train)
         self.outputMetrics(self.y_train, y_train_pred)
         print("\nTest Set Metrics")
-        y_test_pred = model.predict(self.X_test)
+        y_test_pred = neuralModel.predict(self.X_test)
         self.outputMetrics(self.y_test, y_test_pred)
 
         # plots a graph comparing actual value versus predicted value
         fig, ax = plt.subplots()
-        y_pred = model.predict(self.X_test)
+        y_pred = neuralModel.predict(self.X_test)
         ax.scatter(y_pred, self.y_test, edgecolors=(0, 0, 1), alpha=0.1)
         ax.plot([self.y_test.min(), self.y_test.max()], [self.y_test.min(), self.y_test.max()], 'r--', lw=3, )
         ax.set_xlabel('Predicted')
         ax.set_ylabel('Actual')
-        plt.show()
+        #plt.show()
+
+        # saves model
+        neuralModel.save("neural_model.h5")
+
+    # run all models and output predictions
+    def runModels(self):
+
+        # gets user address
+        long, lat = None, None
+        while long is None and lat is None:
+            address = input("Enter a valid address: ")
+            result = cg.onelineaddress(address)
+            if len(result) > 0:
+                long, lat = result[0]['coordinates']['x'], result[0]['coordinates']['y']
+            else:
+                print("Error invalid address.")
+
+        # gets user beds
+        beds = float(input("Enter the number of beds: "))
+
+        # gets user baths
+        baths =  float(input("Enter the number of baths: "))
+
+        # gets user square footage
+        sqft =  float(input("Enter the square footage: "))
+
+        # loads all models
+        k_neighbors_reg = load('KNeighbors.joblib')
+        linearRegElastic = load('Linear.joblib')
+        svm_poly_reg = load('SVM.joblib')
+        neuralModel = load_model('neural_model.h5')
+
+        # predicts with each model and outputs prediction
+        X_new = [long, lat, beds, baths, sqft]
+        print(f"K Neighbors rent prediction: {k_neighbors_reg.predict([X_new])}")
+        print(f"Linear model rent prediction: {linearRegElastic.predict([X_new])}")
+        print(f"SVM rent prediction: {svm_poly_reg.predict([X_new])}")
+        print(f"Neural network rent prediction: {neuralModel.predict([X_new])}")
+

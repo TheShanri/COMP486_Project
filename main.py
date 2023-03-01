@@ -87,11 +87,14 @@ def main():
     # creates linear regression model
     #modelObject.createLinearModel()
 
-    # crates SVM polynomial regression model
+    # creates SVM polynomial regression model
     #modelObject.createSVMModel()
 
-    # crates sequential neural network model
-    modelObject.createNeuralNetwork()
+    # creates sequential neural network model
+    #modelObject.createNeuralNetwork()
+
+    # runs models on user input
+    modelObject.runModels()
 
     # outputs program time taken in total time and time CPU time
     elapsedTime = time.time() - startTime
