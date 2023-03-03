@@ -118,7 +118,7 @@ class LearningModels:
         ax.plot([self.y_test.min(), self.y_test.max()], [self.y_test.min(), self.y_test.max()], 'r--', lw=3)
         ax.set_xlabel('Predicted')
         ax.set_ylabel('Actual')
-        #plt.show()
+        plt.show()
 
         # saves model
         dump(k_neighbors_reg, 'KNeighbors.joblib')
@@ -147,7 +147,7 @@ class LearningModels:
         ax.plot([self.y_test.min(), self.y_test.max()], [self.y_test.min(), self.y_test.max()], 'r--', lw=3)
         ax.set_xlabel('Predicted')
         ax.set_ylabel('Actual')
-        #plt.show()
+        plt.show()
 
         # saves model
         dump(linearRegElastic, 'Linear.joblib')
@@ -177,7 +177,7 @@ class LearningModels:
         ax.plot([self.y_test.min(), self.y_test.max()], [self.y_test.min(), self.y_test.max()], 'r--', lw=3,)
         ax.set_xlabel('Predicted')
         ax.set_ylabel('Actual')
-        #plt.show()
+        plt.show()
 
         # saves model
         dump(svm_poly_reg, 'SVM.joblib')
@@ -189,20 +189,18 @@ class LearningModels:
         tf.random.set_seed(42)
         neuralModel = tf.keras.Sequential()
         neuralModel.add(tf.keras.layers.InputLayer(input_shape=[5]))
-        neuralModel.add(tf.keras.layers.Dense(300, activation="relu"))
-        neuralModel.add(tf.keras.layers.Dense(300, activation="relu"))
-        neuralModel.add(tf.keras.layers.Dense(300, activation="relu"))
-        neuralModel.add(tf.keras.layers.Dense(300, activation="relu"))
-        neuralModel.add(tf.keras.layers.Dense(300, activation="relu"))
+        neuralModel.add(tf.keras.layers.Dense(1000, activation="relu"))
+        neuralModel.add(tf.keras.layers.Dense(1000, activation="relu"))
+        neuralModel.add(tf.keras.layers.Dense(1000, activation="relu"))
+        neuralModel.add(tf.keras.layers.Dense(1000, activation="relu"))
+        neuralModel.add(tf.keras.layers.Dense(1000, activation="relu"))
         neuralModel.add(tf.keras.layers.Dense(1, kernel_initializer='normal'))
 
         # compiles neural network
-        neuralModel.compile(loss="mean_squared_error",
-                      optimizer="adam",
-                      metrics=["mean_absolute_error"])
+        neuralModel.compile(loss="mean_squared_error", optimizer="adam")
 
         # trains neural network
-        history = neuralModel.fit(self.X_train, self.y_train, epochs=30)
+        history = neuralModel.fit(self.X_train, self.y_train, epochs=300)
 
         # evaluates neural network
         print(f"Loss and accuracy for test set: {neuralModel.evaluate(self.X_test, self.y_test)}")
@@ -220,7 +218,14 @@ class LearningModels:
         ax.plot([self.y_test.min(), self.y_test.max()], [self.y_test.min(), self.y_test.max()], 'r--', lw=3, )
         ax.set_xlabel('Predicted')
         ax.set_ylabel('Actual')
-        #plt.show()
+        plt.show()
+
+        # outputs the learning curves
+        pd.DataFrame(history.history).plot(
+            figsize=(8, 5), xlim=[0, 300], ylim=[0, 900000], grid=True, xlabel="Epoch",
+            style=["r--", "r--.", "b-", "b-*"])
+        plt.legend(loc="lower left")  # extra code
+        plt.show()
 
         # saves model
         neuralModel.save("neural_model.h5")
@@ -258,11 +263,8 @@ class LearningModels:
         std_scaler = load("TrainingScaler.joblib")
 
         # predicts with each model and outputs prediction
-        print([[long, lat, beds, baths, sqft]])
         X_new = std_scaler.transform([[long, lat, beds, baths, sqft]])
-        print(X_new)
         print(f"K Neighbors rent prediction: {k_neighbors_reg.predict(X_new)}")
         print(f"Linear model rent prediction: {linearRegElastic.predict(X_new)}")
         print(f"SVM rent prediction: {svm_poly_reg.predict(X_new)}")
         print(f"Neural network rent prediction: {neuralModel.predict(X_new)}")
-
